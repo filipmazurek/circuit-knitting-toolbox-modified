@@ -1,0 +1,13 @@
+target-version = "py38"
+ignore = [
+    "E501",  # line too long
+]
+
+[per-file-ignores]
+"test/**.py" = [
+    "F405",  # star import
+    "F403",  # unable to detect undefined names due to star import
+]
+"docs/**" = [
+    "E402",  # module level import not at top of file
+]
