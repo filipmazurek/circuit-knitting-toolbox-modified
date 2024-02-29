@@ -29,6 +29,7 @@ from circuit_knitting.cutting import (
     cutting_evaluation,
     cutting_reconstruction,
     wire_cutting,
+    gate_and_wire_cutting,
 )
 
 __all__ = [
@@ -65,6 +66,9 @@ sys.modules[
 sys.modules[
     "circuit_knitting_toolbox.circuit_cutting.cutting_reconstruction"
 ] = cutting_reconstruction
+sys.module[
+    "circuit_knitting_toolbox.circuit_cutting.gate_and_wire_cutting"
+] = gate_and_wire_cutting
 
 warn(
     f"The package namespace {__name__} is deprecated and will be removed "

@@ -39,6 +39,9 @@ cplex = [
     "docplex>=2.23.222; python_version < '3.11' and platform_machine != 'arm64'",
     "cplex>=22.1.0.0; python_version < '3.11' and platform_machine != 'arm64'",
 ]
+gurobi = [
+    "gurobipy==11.0.0"
+]
 pyscf = [
     "pyscf>=2.0.1; sys_platform != 'win32'",
 ]
@@ -81,7 +84,7 @@ docs = [
     "reno>=3.4.0",
 ]
 notebook-dependencies = [
-    "circuit-knitting-toolbox[cplex,pyscf]",
+    "circuit-knitting-toolbox[cplex,pyscf,gurobi]",
     "quantum-serverless>=0.0.7",
     "matplotlib",
     "ipywidgets",
