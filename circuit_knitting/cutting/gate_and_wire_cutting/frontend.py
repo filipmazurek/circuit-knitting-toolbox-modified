@@ -20,6 +20,7 @@ def cut_wires_and_gates_to_subcircuits(
     max_subcircuit_width: int,
     max_cuts: int,
     num_subcircuits: list[int],
+    model: str = 'cplex',
     verbose: bool = False,
 ) -> tuple[dict[int, QuantumCircuit], dict[int, PauliList]]:
     """Cut circuit wires using the gate and wire cut algorithm
@@ -31,7 +32,8 @@ def cut_wires_and_gates_to_subcircuits(
         max_subcircuit_width=max_subcircuit_width,
         max_cuts=max_cuts,
         num_subcircuits=num_subcircuits,
-        verbose=verbose
+        model=model,
+        verbose=verbose,
     )
 
     wire_cuts, gate_cuts = cut_list_to_wire_and_gates(cuts_list)

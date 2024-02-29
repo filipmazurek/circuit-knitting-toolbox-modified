@@ -21,7 +21,8 @@ subcircuits, subobservables = cut_wires_and_gates_to_subcircuits(
     method='automatic',
     max_subcircuit_width=2,
     max_cuts=9,
-    num_subcircuits=[2]
+    num_subcircuits=[2],
+    model='gurobi'
 )
 
 # Visualize the subcircuits. Note the decomposed 2-qubit gates marked 'cut_cx_0'

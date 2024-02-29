@@ -34,8 +34,9 @@ def cut_circuit_gates_and_wires(
     max_subcircuit_width: int | None = None,
     max_cuts: int | None = None,
     num_subcircuits: Sequence[int] | None = None,
-    verbose: bool = True,
     double_wire_cost: bool = True,
+    model: str = 'cplex',
+    verbose: bool = True,
 ) -> dict[str, Any]:
     """
     Decompose the circuit into a collection of subcircuits.
@@ -71,8 +72,9 @@ def cut_circuit_gates_and_wires(
             max_subcircuit_width=max_subcircuit_width,
             max_cuts=max_cuts,
             num_subcircuits=num_subcircuits,
-            verbose=verbose,
-            double_wire_cost=double_wire_cost
+            double_wire_cost=double_wire_cost,
+            model=model,
+            verbose=verbose
         )
     elif method == "manual":
         # TODO
@@ -98,8 +100,9 @@ def find_gate_and_wire_cuts(
     max_subcircuit_width: int,
     max_cuts: int | None,
     num_subcircuits: Sequence[int] | None,
-    verbose: bool,
-    double_wire_cost: bool = True,
+    double_wire_cost: bool,
+    model: str,
+    verbose: bool
 ) -> dict[str, Any]:
     """
     Find optimal cuts for the wires.
@@ -118,6 +121,8 @@ def find_gate_and_wire_cuts(
     Returns:
         The solution found for the cuts
     """
+    available_models = ['cplex', 'gurobi']
+
     stripped_circ = _circuit_stripping(circuit=circuit)
     n_vertices, edges, vertex_ids, id_vertices, my_result = _read_circuit_split_gate(circuit=stripped_circ)
 
@@ -150,9 +155,15 @@ def find_gate_and_wire_cuts(
             double_wire_cost=double_wire_cost
         )
 
-        from .mip_model import IBMMIPModel
+        if model == 'cplex':
+            from .mip_model import IBMMIPModel
+            mip_model = IBMMIPModel(**kwargs)
+        elif model == 'gurobi':
+            from .mip_model import GurobiMIPModel
+            mip_model = GurobiMIPModel(**kwargs)
+        else:
+            raise ValueError(f'The model argument must be one of {available_models}')
 
-        mip_model = IBMMIPModel(**kwargs)
         feasible = mip_model.solve(min_postprocessing_cost=min_cost)
 
         if not feasible:
