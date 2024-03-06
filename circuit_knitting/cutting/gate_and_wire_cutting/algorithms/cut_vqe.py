@@ -328,10 +328,10 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
                 for i, subcircuit_key in enumerate(subcircuits.keys()):
                     subcircuits[subcircuit_key] = self.subcircuits[subcircuit_key].assign_parameters(subcircuit_parameters[i], inplace=False)
 
-                print(subcircuits[0])
                 # Execute the circuits
                 quasi_dists, coefficients = execute_simulation(subcircuits, self.subobservables, shots=self.shots, samples=self.num_samples)
 
+                # Reconstruct the expectation values
                 simulated_expvals = reconstruct_expectation_values(quasi_dists, coefficients, self.subobservables)
 
             except Exception as exc:
