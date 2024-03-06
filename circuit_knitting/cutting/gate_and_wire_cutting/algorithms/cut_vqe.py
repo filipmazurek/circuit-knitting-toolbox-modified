@@ -48,7 +48,10 @@ ListOrDict = Union[List[Optional[_T]], Dict[str, _T]]
 
 logger = logging.getLogger(__name__)
 
+# Cutting-specific packages
 from circuit_knitting.cutting.gate_and_wire_cutting.frontend import cut_wires_and_gates_to_subcircuits
+from circuit_knitting.cutting.gate_and_wire_cutting.frontend import execute_simulation
+from circuit_knitting.cutting.cutting_reconstruction import reconstruct_expectation_values
 
 
 class CutVQE(VariationalAlgorithm, MinimumEigensolver):
@@ -306,44 +309,42 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
         def evaluate_energy_with_cutting(parameters: np.ndarray) -> np.ndarray | float:
             nonlocal eval_count
 
-            # FIXME: what's the point of this?
-            # handle broadcasting: ensure parameters is of shape [array, array, ...]
-            # parameters_list = np.reshape(parameters, (-1, num_parameters)).tolist()
+            # Transform the numpy array into a list
             parameters_list = list(parameters)
-            batch_size = len(parameters)
 
             try:
                 # Copy the subcircuits to avoid modifying the original
-                subcircuits = self.subcircuits.copy()  # FIXME: does this need to be a deep copy?
+                # Create a dictionary with the same keys as self.subcircuits
+                subcircuits = dict.fromkeys(self.subcircuits.keys())
 
                 # Assign the parameters to the subcircuits
                 # First, split the parameters based on how many parameters each subcircuit has
                 subcircuit_parameters = []
                 for subcircuit_key in subcircuits.keys():
-                    subcircuit_parameters.append(parameters_list[0:len(subcircuits[subcircuit_key].parameters)])
-                    parameters_list = parameters_list[len(subcircuits[subcircuit_key].parameters):]
+                    subcircuit_parameters.append(parameters_list[0:len(self.subcircuits[subcircuit_key].parameters)])
+                    parameters_list = parameters_list[len(self.subcircuits[subcircuit_key].parameters):]
 
                 # Then, assign the parameters to the subcircuits
                 for i, subcircuit_key in enumerate(subcircuits.keys()):
-                    subcircuits[subcircuit_key].assign_parameters(subcircuit_parameters[i], inplace=True)
+                    subcircuits[subcircuit_key] = self.subcircuits[subcircuit_key].assign_parameters(subcircuit_parameters[i], inplace=False)
 
+                print(subcircuits[0])
                 # Execute the circuits
-                from circuit_knitting.cutting.gate_and_wire_cutting.frontend import execute_simulation
                 quasi_dists, coefficients = execute_simulation(subcircuits, self.subobservables, shots=self.shots, samples=self.num_samples)
 
-                from circuit_knitting.cutting.cutting_reconstruction import reconstruct_expectation_values
                 simulated_expvals = reconstruct_expectation_values(quasi_dists, coefficients, self.subobservables)
 
             except Exception as exc:
                 raise AlgorithmError("The primitive job to evaluate the energy failed!") from exc
 
-            # FIXME: Why is this so much worse than without reconstruction?
             energy = 0
 
             for i in range(0, len(operator)):
                 energy += operator[i].coeffs[0].real * simulated_expvals[i]
 
-            print("energy: " + str(energy))
+            if self.callback is not None:
+                eval_count += 1
+                self.callback(eval_count, parameters, energy, {'': None})
 
             return energy
 

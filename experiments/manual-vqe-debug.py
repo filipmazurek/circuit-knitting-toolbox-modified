@@ -1,4 +1,7 @@
 from qiskit.circuit.library import EfficientSU2, TwoLocal
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
+
 
 from qiskit.quantum_info import SparsePauliOp
 
@@ -29,17 +32,17 @@ from qiskit.circuit.library import EvolvedOperatorAnsatz
 from qiskit.primitives import Estimator
 
 def callback(eval_count, parameters, mean, std):
-    print(f"Round num: {eval_count}, energy: {mean}")
+    print(f"Round num: {eval_count}, energy: {mean}, parameters: {parameters}")
 
 # Define our estimator and optimizer
 estimator = Estimator()
-optimizer = COBYLA()
+optimizer = COBYLA(maxiter=80)
 
 from circuit_knitting.cutting.gate_and_wire_cutting.algorithms.cut_vqe import CutVQE
 # Run VQE and print our results
-# vqe = CutVQE(estimator, circuit, optimizer, observables=observables, shots=2**12, max_subcircuit_width=1, max_cuts=9, num_subcircuits=[2], model='gurobi', num_samples=1500, callback=callback)
-# result = vqe.compute_minimum_eigenvalue(H2_op)
-# print(result)
+vqe = CutVQE(estimator, circuit, optimizer, observables=observables, shots=2**12, max_subcircuit_width=1, max_cuts=9, num_subcircuits=[2], model='gurobi', num_samples=1500, callback=callback)
+result = vqe.compute_minimum_eigenvalue(H2_op)
+print(result)
 
 
 print('-------------------------')
@@ -49,6 +52,6 @@ print('WITHOUT CUTTING')
 
 
 # Run VQE and print our results
-no_cut_vqe = VQE(ansatz=circuit, optimizer=COBYLA(), estimator=Estimator(), callback=callback)
+no_cut_vqe = VQE(ansatz=circuit, optimizer=COBYLA(maxiter=80), estimator=Estimator(), callback=callback)
 no_cut_result = no_cut_vqe.compute_minimum_eigenvalue(H2_op)
 print(no_cut_result)
