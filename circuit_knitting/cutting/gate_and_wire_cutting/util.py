@@ -121,6 +121,8 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
         # If it is a barrier, add a barrier
         if operation[0].name == 'barrier':
             ghz_copy.barrier()
+            # Barriers count as operations. Increment the total gate index
+            total_gate_index += 1
         # If the operation acts on one qubit
         elif len(operation.qubits) == 1:
             # Get the qubit that the operation is acting on

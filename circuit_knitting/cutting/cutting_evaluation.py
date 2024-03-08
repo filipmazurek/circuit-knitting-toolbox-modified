@@ -231,18 +231,7 @@ def _generate_cutting_experiments(
     # depending on the format of the execute_experiments input args, but the 2nd half of this function
     # can be shared between both cases.
     if isinstance(circuits, QuantumCircuit):
-        is_separated = False
-        subcircuit_list = [circuits]
-        subobservables_by_subsystem = decompose_observables(
-            observables, "A" * len(observables[0])
-        )
-        subsystem_observables = {
-            label: ObservableCollection(subobservables)
-            for label, subobservables in subobservables_by_subsystem.items()
-        }
-        # Gather the unique bases from the circuit
-        bases, qpd_gate_ids = _get_bases(circuits)
-        subcirc_qpd_gate_ids = [qpd_gate_ids]
+        raise ValueError('This function is not intended to be used with a single QuantumCircuit.')
 
     else:
         is_separated = True
@@ -323,7 +312,14 @@ def _run_experiments_batch(
 
         num_qpd_bits_flat.append(len(circ.cregs[0]))
 
-    # Run all of the batched experiments
+    # If there are experiments with no measurement at all, replace them them with a dummy circuit
+    for i, circ in enumerate(experiments_flat):
+        if circ.num_clbits == 0:
+            circ = QuantumCircuit(circ.num_qubits, circ.num_qubits)
+            circ.measure(0, 0)
+            experiments_flat[i] = circ
+
+    # Run all batched experiments
     quasi_dists_flat = sampler.run(experiments_flat).result().quasi_dists
 
     # Reshape the output data to match the input
