@@ -70,6 +70,10 @@ def cut_wires_and_gates_to_subcircuits(
     for key in newer_obs.keys():
         subobservables[key] = PauliList(newer_obs[key])
 
+    # If no cuts were performed, raise an error
+    if len(subcircuits) == 1:
+        raise ValueError("The circuit was not cut into subcircuits")
+
     return subcircuits, subobservables
 
 
