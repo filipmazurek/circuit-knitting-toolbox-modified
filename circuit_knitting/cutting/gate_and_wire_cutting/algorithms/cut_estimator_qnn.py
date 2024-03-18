@@ -297,9 +297,9 @@ class CutEstimatorQNN(NeuralNetwork):
 
         return simulated_expvals
 
-    def _forward_postprocess(self, num_samples: int, result: EstimatorResult) -> np.ndarray:
+    def _forward_postprocess(self, num_samples: int, result: list[list[float]]) -> np.ndarray:
         """Post-processing during forward pass of the network."""
-        return np.reshape(result.values, (-1, num_samples)).T
+        return np.reshape(result, (-1, num_samples)).T
 
     def _forward(
         self, input_data: np.ndarray | None, weights: np.ndarray | None
