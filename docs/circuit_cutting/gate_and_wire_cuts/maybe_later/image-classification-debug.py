@@ -130,21 +130,32 @@ for i in range(4):
 plt.subplots_adjust(wspace=0.1, hspace=0.025)
 
 # Set up the QML circuit
+# feature_map = ZFeatureMap(8)
+# ansatz = QuantumCircuit(8, name="Ansatz")
+# MERA = qMERA_circuit(3)
+
+# ansatz.compose(MERA, inplace=True)
+
+from qiskit.circuit import Parameter
+ 
+# Set up the QML circuit
 feature_map = ZFeatureMap(8)
+phi = Parameter('phi')
+ 
 ansatz = QuantumCircuit(8, name="Ansatz")
-MERA = qMERA_circuit(3)
 
-ansatz.compose(MERA, inplace=True)
-
-# Combining the feature map and ansatz
-circuit = QuantumCircuit(8)
+for i in range(0,8):
+    ansatz.rx(phi, i)
+for i in range(0,7):
+    ansatz.cry(phi, i, i+1)
+ 
 circuit.compose(feature_map, range(8), inplace=True)
 circuit.compose(ansatz, range(8), inplace=True)
 
-observable = SparsePauliOp.from_list([("Z" + "I" * 7, 1)])
-
 # Decompose the ZFeatureMap into individual gates
-circuit = circuit.decompose()
+circuit = circuit.decompose(reps=3)
+
+observable = SparsePauliOp.from_list([("Z" + "I" * 7, 1)])
 
 # Set up the estimator QNN
 qnn = CutEstimatorQNN(
@@ -154,20 +165,20 @@ qnn = CutEstimatorQNN(
     weight_params=ansatz.parameters,
 )
 
-# def callback_graph(weights, obj_func_eval):
-#     clear_output(wait=True)
-#     objective_func_vals.append(obj_func_eval)
-#     plt.title("Objective function value against iteration")
-#     plt.xlabel("Iteration")
-#     plt.ylabel("Objective function value")
-#     plt.plot(range(len(objective_func_vals)), objective_func_vals)
-#     plt.show()
+def callback_graph(weights, obj_func_eval):
+    clear_output(wait=True)
+    objective_func_vals.append(obj_func_eval)
+    plt.title("Objective function value against iteration")
+    plt.xlabel("Iteration")
+    plt.ylabel("Objective function value")
+    plt.plot(range(len(objective_func_vals)), objective_func_vals)
+    plt.show()
 
 classifier = NeuralNetworkClassifier(
     qnn,
     optimizer=COBYLA(maxiter=1),  # Set max iterations here
-    # callback=callback_graph,
-    initial_point=np.zeros([15,]),
+    callback=callback_graph,
+    # initial_point=np.zeros([15,]),  # Leaving initial point empty will start with random weights
 )
 
 objective_func_vals = []

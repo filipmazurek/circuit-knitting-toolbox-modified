@@ -4,14 +4,12 @@ import numpy as np
 from IPython.display import clear_output
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterVector
-from qiskit.circuit import Parameter
 from qiskit.circuit.library import ZFeatureMap
 from qiskit.quantum_info import SparsePauliOp
 from qiskit_algorithms.optimizers import COBYLA, ADAM # Rotosolve or rotoselect?
 from qiskit_algorithms.utils import algorithm_globals
 from qiskit_machine_learning.algorithms.classifiers import NeuralNetworkClassifier
 from sklearn.model_selection import train_test_split
-from typing import List, Tuple
 
 from circuit_knitting.cutting.gate_and_wire_cutting.algorithms.cut_estimator_qnn import CutEstimatorQNN
 

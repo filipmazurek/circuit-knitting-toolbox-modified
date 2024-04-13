@@ -36,7 +36,7 @@ def callback(eval_count, parameters, mean, std):
 
 # Define our estimator and optimizer
 estimator = Estimator()
-optimizer = COBYLA(maxiter=80)
+optimizer = COBYLA(maxiter=2)
 
 from circuit_knitting.cutting.gate_and_wire_cutting.algorithms.cut_vqe import CutVQE
 # Run VQE and print our results

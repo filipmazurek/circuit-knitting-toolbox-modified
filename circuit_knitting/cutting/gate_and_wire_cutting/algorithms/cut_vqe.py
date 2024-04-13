@@ -52,6 +52,9 @@ logger = logging.getLogger(__name__)
 from circuit_knitting.cutting.gate_and_wire_cutting.frontend import cut_wires_and_gates_to_subcircuits
 from circuit_knitting.cutting.gate_and_wire_cutting.frontend import execute_simulation
 from circuit_knitting.cutting.cutting_reconstruction import reconstruct_expectation_values
+from circuit_knitting.cutting.gate_and_wire_cutting.evaluation import azure_queue_experiments
+from circuit_knitting.cutting.gate_and_wire_cutting.evaluation import get_experiment_results_from_jobs
+from azure.quantum.qiskit.backends.backend import AzureBackendBase
 
 
 class CutVQE(VariationalAlgorithm, MinimumEigensolver):
@@ -140,7 +143,9 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
             max_cuts=9,
             num_subcircuits=None,
             num_samples=1500,
-            model='gurobi'
+            model='gurobi',
+            backend=None,
+            azure_backend: AzureBackendBase = None
     ) -> None:
         r"""
         Args:
@@ -175,6 +180,18 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
         self.observables = observables
         self.shots = shots
         self.num_samples = num_samples
+
+        if backend is None:
+            backend = 'simulation'
+        elif backend == 'azure':
+            if not isinstance(azure_backend, AzureBackendBase):
+                raise ValueError("The azure backend must be provided when the backend is 'azure' and it must be of type"
+                                 "'AzureBackendBase'")
+        else:
+            raise ValueError("The backend must be either 'azure' or 'simulation")
+
+        self.backend = backend
+        self.azure_backend = azure_backend
 
         self.subcircuits, self.subobservables = cut_wires_and_gates_to_subcircuits(
                                                 circuit=ansatz,
@@ -279,32 +296,32 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
         # avoid creating an instance variable to remain stateless regarding results
         eval_count = 0
 
-        def evaluate_energy(parameters: np.ndarray) -> np.ndarray | float:
-            nonlocal eval_count
-
-            # handle broadcasting: ensure parameters is of shape [array, array, ...]
-            parameters = np.reshape(parameters, (-1, num_parameters)).tolist()
-            batch_size = len(parameters)
-
-            # print(operator)
-            try:
-                job = self.estimator.run(batch_size * [ansatz], batch_size * [operator], parameters)
-                estimator_result = job.result()
-            except Exception as exc:
-                raise AlgorithmError("The primitive job to evaluate the energy failed!") from exc
-
-            values = estimator_result.values
-
-            # print(values)
-            if self.callback is not None:
-               metadata = estimator_result.metadata
-               for params, value, meta in zip(parameters, values, metadata):
-                   eval_count += 1
-                   self.callback(eval_count, params, value, meta)
-
-            energy = values[0] if len(values) == 1 else values
-
-            return energy
+        # def evaluate_energy(parameters: np.ndarray) -> np.ndarray | float:
+        #     nonlocal eval_count
+        #
+        #     # handle broadcasting: ensure parameters is of shape [array, array, ...]
+        #     parameters = np.reshape(parameters, (-1, num_parameters)).tolist()
+        #     batch_size = len(parameters)
+        #
+        #     # print(operator)
+        #     try:
+        #         job = self.estimator.run(batch_size * [ansatz], batch_size * [operator], parameters)
+        #         estimator_result = job.result()
+        #     except Exception as exc:
+        #         raise AlgorithmError("The primitive job to evaluate the energy failed!") from exc
+        #
+        #     values = estimator_result.values
+        #
+        #     # print(values)
+        #     if self.callback is not None:
+        #        metadata = estimator_result.metadata
+        #        for params, value, meta in zip(parameters, values, metadata):
+        #            eval_count += 1
+        #            self.callback(eval_count, params, value, meta)
+        #
+        #     energy = values[0] if len(values) == 1 else values
+        #
+        #     return energy
 
         def evaluate_energy_with_cutting(parameters: np.ndarray) -> np.ndarray | float:
             nonlocal eval_count
@@ -329,10 +346,20 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
                     subcircuits[subcircuit_key] = self.subcircuits[subcircuit_key].assign_parameters(subcircuit_parameters[i], inplace=False)
 
                 # Execute the circuits
-                quasi_dists, coefficients = execute_simulation(subcircuits, self.subobservables, shots=self.shots, samples=self.num_samples)
-
-                # Reconstruct the expectation values
-                simulated_expvals = reconstruct_expectation_values(quasi_dists, coefficients, self.subobservables)
+                if self.backend == 'simulation':
+                    quasi_dists, coefficients = execute_simulation(subcircuits, self.subobservables, shots=self.shots, samples=self.num_samples)
+                    # Reconstruct the expectation values
+                    simulated_expvals = reconstruct_expectation_values(quasi_dists, coefficients, self.subobservables)
+                elif self.backend == 'azure':
+                    job_list, qpd_list, coefficients, subexperiments = azure_queue_experiments(
+                        circuits=subcircuits,
+                        subobservables=self.subobservables,
+                        num_samples=8,  # 8 unique samples to get some statistics
+                        backend=self.azure_backend,
+                        shots=128  # Balance of cost and accuracy
+                    )
+                    experiment_results = get_experiment_results_from_jobs(job_list, qpd_list, coefficients)
+                    simulated_expvals = reconstruct_expectation_values(*experiment_results, self.subobservables)
 
             except Exception as exc:
                 raise AlgorithmError("The primitive job to evaluate the energy failed!") from exc

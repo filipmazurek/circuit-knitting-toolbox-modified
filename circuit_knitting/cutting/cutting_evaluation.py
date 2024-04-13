@@ -115,7 +115,8 @@ def execute_experiments(
             collision_dict[id(v)] = k
 
     # Ensure input Samplers can handle mid-circuit measurements
-    _validate_samplers(samplers)
+    # TODO: make sure this works for BackendEstimator as well
+    # _validate_samplers(samplers)
 
     # Generate the sub-experiments to run on backend
     (

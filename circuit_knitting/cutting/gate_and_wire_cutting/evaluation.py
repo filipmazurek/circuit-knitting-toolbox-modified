@@ -24,6 +24,7 @@ from qiskit.primitives import BaseSampler, Sampler as TerraSampler
 from qiskit_aer.primitives import Sampler as AerSampler
 from qiskit.result import QuasiDistribution
 from azure.quantum.qiskit.job import AzureQuantumJob
+from azure.quantum.qiskit.backends.backend import AzureBackendBase
 
 from ...utils.observable_grouping import CommutingObservableGroup, ObservableCollection
 from ...utils.iteration import strict_zip
@@ -49,8 +50,7 @@ def azure_queue_experiments(
     circuits: QuantumCircuit | dict[str | int, QuantumCircuit],
     subobservables: PauliList | dict[str | int, PauliList],
     num_samples: int,
-    backend: str,
-    provider,
+    backend: AzureBackendBase,
     shots: int
 ) -> [list[list[list[AzureQuantumJob]]], list[list[list[int]]], list[tuple[Any, WeightType]], list[list[list[QuantumCircuit]]]]:
     """
@@ -65,7 +65,6 @@ def azure_queue_experiments(
     #  The shape of the list is: (``num_unique_samples``, ``num_partitions``, ``num_commuting_observ_groups``)
 
     # FIXME: find sensible numbers for num_samples and shots
-
     usable_backends = ['quantinuum.sim.h1-1sc', 'quantinuum.sim.h1-2sc', 'quantinuum.sim.h1-1e', 'quantinuum.sim.h1-2e', 'quantinuum.qpu.h1-1', 'quantinuum.qpu.h1-2']
 
     if num_samples <= 0:
@@ -88,11 +87,8 @@ def azure_queue_experiments(
         if circuits.keys() != subobservables.keys():
             raise ValueError( "The keys for the circuits and observables dicts should be equivalent.")
 
-    if backend not in usable_backends:
-        raise ValueError(f"Backend {backend} is not supported. Please use one of {usable_backends}")
-
     # Get the actual Quantinuum backend from Azure
-    quantinuum_api_backend = provider.get_backend(backend)
+    quantinuum_api_backend = backend
 
     # Generate the sub-experiments to run on backend
     # Gives back subexperiments as many as there are num_samples
@@ -154,6 +150,8 @@ def _run_experiment_on_azure(
     Submit the circuits to the azure backend
     """
 
+    # TODO: why am I still getting included classical registers with 0 qubits in them?
+
     num_qpd_bits_flat = []
 
     # Run all the experiments in one big batch
@@ -170,6 +168,7 @@ def _run_experiment_on_azure(
                 "Circuits input to execute_experiments should contain no classical registers or bits."
             )
         # If the qpd_measurements register was not added (because no qpd measurements in this subexperiment)
+
         if circ.cregs[0].name != "qpd_measurements":
             num_qpd_bits_flat.append(0)
             if circ.cregs[0].name != "observable_measurements":
@@ -535,7 +534,7 @@ def _run_experiments_batch(
         else:
             num_qpd_bits_flat.append(len(circ.cregs[0]))
 
-    # Run all of the batched experiments
+    # Run all batched experiments
     quasi_dists_flat = sampler.run(experiments_flat).result().quasi_dists
 
     # Reshape the output data to match the input

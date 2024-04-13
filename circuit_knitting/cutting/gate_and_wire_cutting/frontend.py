@@ -77,7 +77,7 @@ def cut_wires_and_gates_to_subcircuits(
     return subcircuits, subobservables
 
 
-def execute_simulation(subcircuits, subobservables, shots=2**12, samples=1500):
+def execute_simulation(subcircuits, subobservables, shots=2 ** 12, samples=1500):
     # Give default values in case of Nones
     if shots is None:
         shots = 2**12
