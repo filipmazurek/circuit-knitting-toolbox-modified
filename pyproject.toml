@@ -30,9 +30,6 @@ dependencies = [
     "qiskit-terra>=0.24.0",
     "qiskit-nature>=0.6.0",
     "qiskit-ibm-runtime>=0.9.2",
-    "qiskit==0.45.3",
-    "qiskit-algorithms==0.3.0",
-    "qiskit-machine-learning==0.7.2",
 ]
 
 [project.optional-dependencies]
@@ -88,7 +85,6 @@ docs = [
 ]
 notebook-dependencies = [
     "circuit-knitting-toolbox[cplex,pyscf,gurobi]",
-    "quantum-serverless>=0.0.7",
     "matplotlib",
     "ipywidgets",
     "pylatexenc",
