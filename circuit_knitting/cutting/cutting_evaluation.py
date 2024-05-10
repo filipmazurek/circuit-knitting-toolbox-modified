@@ -300,10 +300,12 @@ def _run_experiments_batch(
 
     for circ in experiments_flat:
         if (
-            len(circ.cregs) != 2
-            or circ.cregs[1].name != "observable_measurements"
-            or circ.cregs[0].name != "qpd_measurements"
-            or sum([reg.size for reg in circ.cregs]) != circ.num_clbits
+
+            # len(circ.cregs) != 2
+            # or circ.cregs[1].name != "observable_measurements"
+            # or circ.cregs[0].name != "qpd_measurements"
+            # or
+            sum([reg.size for reg in circ.cregs]) != circ.num_clbits
         ):
             # If the classical bits/registers are in any other format than expected, the user must have
             # input them, so we can just raise this generic error in any case.

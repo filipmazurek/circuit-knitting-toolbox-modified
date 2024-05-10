@@ -389,6 +389,10 @@ def _decompose_qpd_measurements(
         if instruction.operation.name.lower() == "qpd_measure"
     ]
 
+    # Return early if there is nothing to do
+    if len(qpd_measure_ids) == 0:
+        return circuit
+
     # Create a classical register for the qpd measurement results.  This is
     # partly for convenience, partly to work around
     # https://github.com/Qiskit/qiskit-aer/issues/1660.

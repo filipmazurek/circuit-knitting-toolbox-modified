@@ -1,6 +1,8 @@
 from azure.quantum import Workspace
 from azure.quantum.qiskit import AzureQuantumProvider
 
+from circuit_knitting.cutting.gate_and_wire_cutting.evaluation import get_experiment_results_from_jobs
+from circuit_knitting.cutting.cutting_reconstruction import reconstruct_expectation_values
 
 workspace = Workspace(
             resource_id = "/subscriptions/4ed1f7fd-7d9e-4c61-9fac-521649937e65/resourceGroups/Cutting/providers/Microsoft.Quantum/Workspaces/Cutting",
@@ -43,3 +45,23 @@ subcircuits, subobservables = cut_wires_and_gates_to_subcircuits(
 # Visualize the subcircuits. Note the decomposed 2-qubit gates marked 'cut_cx_0'
 for key in subcircuits.keys():
     print(subcircuits[key])
+
+from circuit_knitting.cutting.gate_and_wire_cutting.evaluation import azure_queue_experiments
+
+# Use the Quantinuum emulator backend
+# FIXME: use the syntax checker for free
+backend_str = 'quantinuum.sim.h1-1sc'
+backend = provider.get_backend(backend_str)
+
+# Submit the subcircuits to Azure Quantum
+job_list, qpd_list, coefficients, subexperiments = azure_queue_experiments(
+    circuits=subcircuits,
+    subobservables=subobservables,
+    num_samples=16,  # Smallest amount for syntax testing
+    backend=backend,
+    # provider=provider,
+    shots=1  # Smallest amount for syntax testing
+)
+
+experiment_results = get_experiment_results_from_jobs(job_list, qpd_list, coefficients)
+quantinuum_expvals = reconstruct_expectation_values(*experiment_results, subobservables)
