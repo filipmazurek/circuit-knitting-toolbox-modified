@@ -36,7 +36,7 @@ def cut_circuit_gates_and_wires(
     num_subcircuits: Sequence[int] | None = None,
     double_wire_cost: bool = True,
     model: str = 'cplex',
-    verbose: bool = True,
+    verbose: bool = False,
 ) -> dict[str, Any]:
     """
     Decompose the circuit into a collection of subcircuits.
@@ -172,7 +172,8 @@ def find_gate_and_wire_cuts(
             continue
         else:
             # Get the raw results of the optmization
-            print('MIP MODEL CUT EDGES: ', mip_model.cut_edges)
+            if verbose:
+                print('MIP MODEL CUT EDGES: ', mip_model.cut_edges)
 
             cuts = mip_model.cut_edges
 

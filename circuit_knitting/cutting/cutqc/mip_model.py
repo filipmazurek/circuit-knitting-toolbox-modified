@@ -466,11 +466,11 @@ class MIPModel(object):
         # % (self.model.NumVars,self.model.NumConstrs, self.model.NumQConstrs, self.model.NumGenConstrs))
         from docplex.mp.utils import DOcplexException
 
-        print(
-            "Exporting as a LP file to let you check the model that will be solved : ",
-            min_postprocessing_cost,
-            str(type(min_postprocessing_cost)),
-        )
+        # print(
+        #     "Exporting as a LP file to let you check the model that will be solved : ",
+        #     min_postprocessing_cost,
+        #     str(type(min_postprocessing_cost)),
+        # )
         try:
             self.model.export_as_lp(path="./docplex_cutter.lp")
         except RuntimeError:
@@ -484,7 +484,7 @@ class MIPModel(object):
                 self.model.parameters.mip.tolerances.uppercutoff(
                     min_postprocessing_cost
                 )
-            self.model.solve(log_output=True)
+            self.model.solve(log_output=False)
 
         except DOcplexException as e:
             print("Caught: " + e.message)

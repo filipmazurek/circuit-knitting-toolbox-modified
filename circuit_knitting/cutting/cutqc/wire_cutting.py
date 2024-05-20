@@ -36,7 +36,7 @@ def cut_circuit_wires(
     max_subcircuit_size: int | None = None,
     max_cuts: int | None = None,
     num_subcircuits: Sequence[int] | None = None,
-    verbose: bool = True,
+    verbose: bool = False,
 ) -> dict[str, Any]:
     """
     Decompose the circuit into a collection of subcircuits.
