@@ -193,7 +193,7 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
         self.backend = backend
         self.azure_backend = azure_backend
 
-        self.subcircuits, self.subobservables = cut_wires_and_gates_to_subcircuits(
+        self.subcircuits, self.subobservables, n_wire_cuts, n_gate_cuts = cut_wires_and_gates_to_subcircuits(
                                                 circuit=ansatz,
                                                 observables=[str(observable) for observable in observables],
                                                 method='automatic',
