@@ -12,7 +12,6 @@ from .util import cut_list_to_wire_and_gates, copy_and_add_ancilla, add_I_observ
 from .cutting import cut_circuit_gates_and_wires
 
 
-
 def cut_wires_and_gates_to_subcircuits(
     circuit: QuantumCircuit,
     observables: list[str],
@@ -22,7 +21,7 @@ def cut_wires_and_gates_to_subcircuits(
     num_subcircuits: list[int] = None,
     model: str = 'cplex',
     verbose: bool = False,
-) -> tuple[dict[int, QuantumCircuit], dict[int, PauliList]]:
+) -> tuple[dict[int, QuantumCircuit], dict[int, PauliList], int, int]:
     """Cut circuit wires using the gate and wire cut algorithm
     """
 
@@ -37,6 +36,8 @@ def cut_wires_and_gates_to_subcircuits(
     )
 
     wire_cuts, gate_cuts = cut_list_to_wire_and_gates(cuts_list)
+
+    print("MIP MODEL CUT WIRES: ", wire_cuts)
 
     # Add gates to decompose given the cut locations
     ancilla_circ, cut_indices, qubit_mapping_ancilla = copy_and_add_ancilla(circuit, wire_cuts, gate_cuts)
@@ -74,7 +75,7 @@ def cut_wires_and_gates_to_subcircuits(
     if len(subcircuits) == 1:
         raise ValueError("The circuit was not cut into subcircuits")
 
-    return subcircuits, subobservables
+    return subcircuits, subobservables, len(wire_cuts), len(gate_cuts)
 
 
 def execute_simulation(subcircuits, subobservables, shots=2 ** 12, samples=1500):
@@ -119,4 +120,7 @@ def compare_results(experiment_expvals, exact_expvals):
     print(
         f"Relative errors in estimation: {[np.round((experiment_expvals[i] - exact_expvals[i]) / exact_expvals[i], 8) for i in range(len(exact_expvals))]}"
     )
+    
+    # return errors & relative errors
+    return [np.round(experiment_expvals[i] - exact_expvals[i], 8) for i in range(len(exact_expvals))], [np.round((experiment_expvals[i] - exact_expvals[i]) / exact_expvals[i], 8) for i in range(len(exact_expvals))]
 
