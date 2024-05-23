@@ -17,8 +17,8 @@ def cut_wires_and_gates_to_subcircuits(
     observables: list[str],
     method: str,
     max_subcircuit_width: int,
-    max_cuts: int,
-    num_subcircuits: list[int],
+    max_cuts: int = None,
+    num_subcircuits: list[int] = None,
     model: str = 'cplex',
     verbose: bool = False,
 ) -> tuple[dict[int, QuantumCircuit], dict[int, PauliList], int, int]:

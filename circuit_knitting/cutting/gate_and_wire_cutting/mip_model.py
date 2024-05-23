@@ -141,6 +141,7 @@ class IBMMIPModel(object):
 
         self.model = Model("docplex_cutter")
         self.model.log_output = False
+
         self._add_variables()
         self._add_constraints()
 
@@ -447,11 +448,11 @@ class IBMMIPModel(object):
         """
         from docplex.mp.utils import DOcplexException
 
-        print(
-            "Exporting as a LP file to let you check the model that will be solved : ",
-            min_postprocessing_cost,
-            str(type(min_postprocessing_cost)),
-        )
+        # print(
+        #     "Exporting as a LP file to let you check the model that will be solved : ",
+        #     min_postprocessing_cost,
+        #     str(type(min_postprocessing_cost)),
+        # )
         try:
             self.model.export_as_lp(path="./docplex_cutter.lp")
         except RuntimeError:
@@ -465,7 +466,7 @@ class IBMMIPModel(object):
                 self.model.parameters.mip.tolerances.uppercutoff(
                     min_postprocessing_cost
                 )
-            self.model.solve(log_output=True)
+            self.model.solve(log_output=False)
 
         except DOcplexException as e:
             print("Caught: " + e.message)
@@ -477,8 +478,9 @@ class IBMMIPModel(object):
         from docplex.mp.relaxer import Relaxer
         rx = Relaxer()
         rs = rx.relax(self.model)
-        rx.print_information()
-        rs.display()
+        # Prints all optimization values
+        # rx.print_information()
+        # rs.display()
 
         if self.model._has_solution:
             my_solve_details = self.model.solve_details
