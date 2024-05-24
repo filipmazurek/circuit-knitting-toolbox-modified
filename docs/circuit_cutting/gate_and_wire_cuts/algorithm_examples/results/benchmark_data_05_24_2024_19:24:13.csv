@@ -1,0 +1,5 @@
+Algorithm,Original Circuit Width,Number of Subcircuits,Number of Wire Cuts,Number of Gate Cuts,Original Circuit Depth,Subcircuits' Widths,Subcircuits' Depths,Time to Find Optimal Solution,Time to Reconstruct
+Adder,8,Infeasible,N/A,N/A,75,N/A,N/A,N/A,N/A
+QFT,8,2,4,8,55,"[6, 6]","[36, 43]",1.240175485610962,117.69208002090454
+Supremacy,8,2,0,0,13,"[6, 2]","[13, 6]",0.013366222381591797,0.03465557098388672
+QAOA,8,2,0,6,17,"[3, 5]","[16, 17]",0.09122061729431152,74.64443922042847

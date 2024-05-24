@@ -1,0 +1,2 @@
+Algorithm,Original Circuit Width,Number of Subcircuits,Number of Wire Cuts,Number of Gate Cuts,Original Circuit Depth,Subcircuits' Widths,Subcircuits' Depths,Time to Find Optimal Solution,Time to Reconstruct
+Adder,10,Infeasible,N/A,N/A,99,N/A,N/A,N/A,N/A
