@@ -1,7 +1,7 @@
-from qiskit import QuantumCircuit, Aer, execute, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, transpile, QuantumRegister, ClassicalRegister
+from qiskit_aer import Aer
 from qiskit.circuit import Parameter
 import re
-
 
 def cut_list_to_wire_and_gates(cuts) -> (list[str], list[tuple[str]]):
     """
@@ -194,7 +194,8 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
     # Create a mapping of where the original qubits were to where the resulting qubits are. For observable mapping
     qubit_map = []
     for i, qubit in enumerate(original_circ.qubits):
-        qubit_map.append((i, qubit_mapping[qubit].index))
+        qubit_map.append((i, qubit_mapping[qubit]._index))
+        #qubit_map.append((i, qubit_mapping[qubit].index))
 
     return ghz_copy, cut_gate_indices, qubit_map
 

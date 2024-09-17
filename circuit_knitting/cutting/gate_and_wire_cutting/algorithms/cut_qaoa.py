@@ -15,17 +15,17 @@
 from typing import List, Callable, Optional, Union
 import numpy as np
 
-from qiskit.algorithms.optimizers import Optimizer
+from qiskit_algorithms.optimizers import Optimizer
 from qiskit.circuit import QuantumCircuit
-from qiskit.opflow import OperatorBase, ExpectationBase
+from qiskit.quantum_info.operators.base_operator import BaseOperator
+from qiskit.primitives.Estimator import ExpectationBase
 from qiskit.primitives import BaseEstimator
 from qiskit.quantum_info import PauliList
-from qiskit.opflow.gradients import GradientBase
+from qiskit_algorithms.gradients import GradientBase
 from qiskit.providers import Backend
 from qiskit.utils.quantum_instance import QuantumInstance
 from qiskit.utils.validation import validate_min
 from qiskit.circuit.library.n_local.qaoa_ansatz import QAOAAnsatz
-from qiskit.algorithms.minimum_eigen_solvers.vqe import VQE
 from circuit_knitting.cutting.gate_and_wire_cutting.algorithms.cut_vqe import CutVQE
 from azure.quantum.qiskit.backends.backend import AzureBackendBase
 
@@ -62,7 +62,7 @@ class CutQAOA(CutVQE):
                  optimizer: Optimizer = None,
                  reps: int = 1,
                  initial_state: Optional[QuantumCircuit] = None,
-                 mixer: Union[QuantumCircuit, OperatorBase] = None,
+                 mixer: Union[QuantumCircuit, BaseOperator] = None,
                  initial_point: Optional[np.ndarray] = None,
                  gradient: Optional[Union[GradientBase, Callable[[Union[np.ndarray, List]],
                                                                  List]]] = None,
@@ -137,7 +137,7 @@ class CutQAOA(CutVQE):
                          backend=backend,
                          azure_backend=azure_backend)
 
-    def _check_operator(self, operator: OperatorBase) -> OperatorBase:
+    def _check_operator(self, operator: BaseOperator) -> BaseOperator:
         # Recreates a circuit based on operator parameter.
         if operator.num_qubits != self.ansatz.num_qubits:
             self.ansatz = QAOAAnsatz(operator,
@@ -164,7 +164,7 @@ class CutQAOA(CutVQE):
         self._initial_state = initial_state
 
     @property
-    def mixer(self) -> Union[QuantumCircuit, OperatorBase]:
+    def mixer(self) -> Union[QuantumCircuit, BaseOperator]:
         """
         Returns:
             Returns the mixer.
@@ -172,7 +172,7 @@ class CutQAOA(CutVQE):
         return self._mixer
 
     @mixer.setter
-    def mixer(self, mixer: Union[QuantumCircuit, OperatorBase]) -> None:
+    def mixer(self, mixer: Union[QuantumCircuit, BaseOperator]) -> None:
         """
         Args:
             mixer: Mixer to set.
