@@ -23,25 +23,23 @@ from typing import Any
 
 import numpy as np
 
-from qiskit_algorithms.gradients import BaseEstimatorGradient
+from qiskit.algorithms.gradients import BaseEstimatorGradient
 from qiskit.circuit import QuantumCircuit
-#from qiskit.opflow import PauliSumOp
-from qiskit.quantum_info import SparsePauliOp
+from qiskit.opflow import PauliSumOp
 from qiskit.primitives import BaseEstimator
 from qiskit.quantum_info.operators.base_operator import BaseOperator
 from qiskit_aer.primitives import Estimator, Sampler
 
 from qiskit.quantum_info import PauliList
 
-#from qiskit_algorithms import eval_observables, AlgorithmError
-from qiskit_algorithms import AlgorithmError
-from qiskit_algorithms.optimizers import SLSQP, Minimizer, Optimizer, OptimizerResult
-from qiskit_algorithms.variational_algorithm import VariationalAlgorithm, VariationalResult
-from qiskit_algorithms.minimum_eigensolvers import MinimumEigensolver, MinimumEigensolverResult
-from qiskit_algorithms.utils import validate_initial_point, validate_bounds
+from qiskit.algorithms import eval_observables, AlgorithmError
+from qiskit.algorithms.optimizers import SLSQP, Minimizer, Optimizer, OptimizerResult
+from qiskit.algorithms.variational_algorithm import VariationalAlgorithm, VariationalResult
+from qiskit.algorithms.minimum_eigen_solvers import MinimumEigensolver, MinimumEigensolverResult
+from qiskit.algorithms.utils import validate_initial_point, validate_bounds
 
 # private function as we expect this to be updated in the next released
-from qiskit_algorithms.utils.set_batching import _set_default_batchsize
+from qiskit.algorithms.utils.set_batching import _set_default_batchsize
 
 from typing import TypeVar, List, Union, Optional, Dict
 
@@ -215,8 +213,8 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
 
     def compute_minimum_eigenvalue(
             self,
-            operator: BaseOperator | SparsePauliOp,
-            aux_operators: ListOrDict[BaseOperator | SparsePauliOp] | None = None,
+            operator: BaseOperator | PauliSumOp,
+            aux_operators: ListOrDict[BaseOperator | PauliSumOp] | None = None,
     ) -> CutVQEResult:
         # self._check_operator_ansatz(operator)
 
@@ -278,7 +276,7 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
     def _get_evaluate_energy(
             self,
             ansatz: QuantumCircuit,
-            operator: BaseOperator | SparsePauliOp,
+            operator: BaseOperator | PauliSumOp,
     ) -> Callable[[np.ndarray], np.ndarray | float]:
         """Returns a function handle to evaluate the energy at given parameters for the ansatz.
         This is the objective function to be passed to the optimizer that is used for evaluation.
@@ -382,7 +380,7 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
     def _get_evaluate_gradient(
             self,
             ansatz: QuantumCircuit,
-            operator: BaseOperator | SparsePauliOp,
+            operator: BaseOperator | PauliSumOp,
     ) -> Callable[[np.ndarray], np.ndarray]:
         """Get a function handle to evaluate the gradient at given parameters for the ansatz.
 
@@ -409,7 +407,7 @@ class CutVQE(VariationalAlgorithm, MinimumEigensolver):
 
         return evaluate_gradient
 
-    def _check_operator_ansatz(self, operator: BaseOperator | SparsePauliOp):
+    def _check_operator_ansatz(self, operator: BaseOperator | PauliSumOp):
         """Check that the number of qubits of operator and ansatz match and that the ansatz is
         parameterized.
         """
