@@ -73,6 +73,8 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
     for i in range(original_circ.num_qubits):
         qubit_mapping[original_circ.qubits[i]] = q[i]
 
+    original_qubit_mapping = qubit_mapping.copy()
+
     # Add the same number of classical bits as the original circuit
     c = ClassicalRegister(original_circ.num_clbits)
 
@@ -143,7 +145,7 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
             ghz_copy.append(operation[0], [qubit_mapping[qubit1], qubit_mapping[qubit2]])
             # Increment the total gate index
             total_gate_index += 1
-            # Add the gate index for the corresponding qubits. But first take into account if the qubit is an ancilla qubit
+            # Add the gate index for the corresponding qubits.First take into account if the qubit is an ancilla
             if qubit_mapping[qubit1] in gate_index_dict:
                 gate_index_dict[qubit_mapping[qubit1]] += 1
             else:
@@ -153,9 +155,9 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
             else:
                 gate_index_dict[ancilla_mapping_reverse[qubit_mapping[qubit2]]] += 1
             # Check if the gate is a gate cut. If it is, add the total index to the list of cut gate indices
-            if qubit1 in gate_cut_dict and gate_index_dict[qubit_mapping[qubit1]] in gate_cut_dict[qubit1]:
+            if qubit1 in gate_cut_dict and gate_index_dict[original_qubit_mapping[qubit1]] in gate_cut_dict[qubit1]:
                 cut_gate_indices.append(total_gate_index)
-            elif qubit2 in gate_cut_dict and gate_cut_dict[qubit2] == gate_index_dict[qubit_mapping[qubit2]]:
+            elif qubit2 in gate_cut_dict and gate_cut_dict[qubit2] == gate_index_dict[original_qubit_mapping[qubit2]]:
                 cut_gate_indices.append(total_gate_index)
 
             # Check if there is a wire cut after this 2-qubit operation (on either, or both, of the 2 qubits)
@@ -170,8 +172,9 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
                     if current_gate_index in wire_cut_dict[check_qubit]:
                         # Remove the gate index from the wire cut dictionary
                         wire_cut_dict[check_qubit].remove(current_gate_index)
-                        # Increment the values of the cut indices for the qubit that was cut (because we are adding two CX)
+                        # Increment the cut indices for the qubit that was cut (because we are adding two CX)
                         wire_cut_dict[check_qubit] = [x + 2 for x in wire_cut_dict[check_qubit]]
+                        # TODO: add a reset operation?
                         # Add a SWAP operation (only need two CX because ancilla should be 0)
                         ghz_copy.cx(ancilla_mapping[qubit_mapping[check_qubit]], qubit_mapping[check_qubit])
                         ghz_copy.cx(qubit_mapping[check_qubit], ancilla_mapping[qubit_mapping[check_qubit]])
@@ -181,7 +184,6 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
                         total_gate_index += 1
                         cut_gate_indices.append(total_gate_index)
                         # DO NOT add to the gate_index_dict, as that would confuse which gates to cut
-                        # TODO: add a reset operation?
                         # Change the active qubit
                         active_qubits.remove(qubit_mapping[check_qubit])
                         active_qubits.append(ancilla_mapping[qubit_mapping[check_qubit]])
@@ -189,7 +191,7 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
                         temp = qubit_mapping[check_qubit]
                         qubit_mapping[check_qubit] = ancilla_mapping[qubit_mapping[check_qubit]]
                         ancilla_mapping[qubit_mapping[check_qubit]] = temp
-                        # DO NOT mess with the individual gate index dict, as that would lose our spot with the gate cuts
+                        # DO NOT mess with individual gate index dict, as that would lose our spot with the gate cuts
 
     # Create a mapping of where the original qubits were to where the resulting qubits are. For observable mapping
     qubit_map = []
