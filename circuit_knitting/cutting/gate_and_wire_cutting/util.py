@@ -174,7 +174,9 @@ def copy_and_add_ancilla(original_circ: QuantumCircuit, wire_cut_locations, gate
                         wire_cut_dict[check_qubit].remove(current_gate_index)
                         # Increment the cut indices for the qubit that was cut (because we are adding two CX)
                         wire_cut_dict[check_qubit] = [x + 2 for x in wire_cut_dict[check_qubit]]
-                        # TODO: add a reset operation?
+                        # Reset the ancilla qubit to be in the |0> state and add to the total gate index
+                        ghz_copy.reset(ancilla_mapping[qubit_mapping[check_qubit]])
+                        total_gate_index += 1
                         # Add a SWAP operation (only need two CX because ancilla should be 0)
                         ghz_copy.cx(ancilla_mapping[qubit_mapping[check_qubit]], qubit_mapping[check_qubit])
                         ghz_copy.cx(qubit_mapping[check_qubit], ancilla_mapping[qubit_mapping[check_qubit]])
